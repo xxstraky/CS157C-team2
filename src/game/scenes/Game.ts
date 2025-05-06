@@ -166,51 +166,77 @@ export class Game extends Scene
         // The last readied user will start it
         if (!this.gameStarted) {
             try {
-                // Retrieve last readied user
-                const response = await axios.get("http://localhost:3000/lastready", {
-                    withCredentials: true
-                });
-    
-                // Set this.gameId
-                this.gameId = response.data.gameId;
-    
-                // Retrieve this current user
-                const userResponse = await axios.get("http://localhost:3000/user", {
-                    withCredentials: true
-                });
-    
-                // Check if this current user == last readied user
-                if (userResponse.data.userId == response.data.lastReady) {
-    
-                    // Last readied user will generate first 10 words randomly using this.wordBank
-                    this.wordList = this.wordBank.sort(() => 0.5 - Math.random()).slice(0, 10);
+                // Last readied user will generate first 10 words randomly using this.wordBank
+                this.wordList = this.wordBank.sort(() => 0.5 - Math.random()).slice(0, 10);
 
-    
-                    // Call startgame endpoint with created wordList
-                    const gameResponse = await axios.post("http://localhost:3000/startgame", {
-                        gameId: this.gameId,
-                        wordList: this.wordList
-                    }, {
-                        withCredentials: true
-                    });
-    
-                    if (gameResponse.data.success) {
-                        // Last readied user's game starts
-                        this.gameStarted = true;
-                        // Enter fetchGameStatus loop
-                        await this.fetchGameStatusWhile();
-                    }
-    
-    
-    
+                // Start game
+                const response = await axios.post("http://localhost:3000/startgame", {
+                    wordList: this.wordList
+                }, {
+                    withCredentials:true
+                });
+
+                // Check if starting game was successful (means last readied player started game)
+                if (response.data.success) {
+                    this.gameStarted = true;
+                    // Enter fetchGameStatus loop
+                    await this.fetchGameStatusWhile();
                 }
-                // Not readied user
                 else {
                     // Wait for game data to appear in database
-                    await this.waitGameStartWhile();
-    
-    
+                     await this.waitGameStartWhile();
                 }
+
+
+
+
+
+
+                // Retrieve last readied user
+                // const response = await axios.get("http://localhost:3000/lastready", {
+                //     withCredentials: true
+                // });
+    
+                // // Set this.gameId
+                // this.gameId = response.data.gameId;
+    
+                // // Retrieve this current user
+                // const userResponse = await axios.get("http://localhost:3000/user", {
+                //     withCredentials: true
+                // });
+    
+                // Check if this current user == last readied user
+                // if (userResponse.data.userId == response.data.lastReady) {
+    
+                //     // Last readied user will generate first 10 words randomly using this.wordBank
+                //     this.wordList = this.wordBank.sort(() => 0.5 - Math.random()).slice(0, 10);
+
+    
+                //     // Call startgame endpoint with created wordList
+                //     const gameResponse = await axios.post("http://localhost:3000/startgame", {
+                //         gameId: this.gameId,
+                //         wordList: this.wordList
+                //     }, {
+                //         withCredentials: true
+                //     });
+    
+                //     if (gameResponse.data.success) {
+                //         // Last readied user's game starts
+                //         this.gameStarted = true;
+                //         // Enter fetchGameStatus loop
+                //         await this.fetchGameStatusWhile();
+                //     }
+    
+    
+    
+                // }
+                // // Not readied user
+                // else {
+                //     // Wait for game data to appear in database
+                //     await this.waitGameStartWhile();
+    
+    
+                // }
             }
             catch (error) {
                 console.log(error);
