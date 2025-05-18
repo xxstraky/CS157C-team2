@@ -9,7 +9,6 @@ export class Queue extends Scene {
     gameStarted: boolean = false;
 
     // GUI elements
-    background: GameObjects.Rectangle;
     title: GameObjects.Text;
     queueText: GameObjects.Text;
     readyText: GameObjects.Text;

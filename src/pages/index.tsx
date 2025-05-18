@@ -65,7 +65,6 @@ export default function Home() {
                 <title>Type99</title>
                 <meta name="description" content="Type99 Tetris Edition." />
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
-                <link rel="icon" href="/favicon.png" />
             </Head>
             <main className={`${inter.className} home-container`}>
                 <div className="tetris-container">

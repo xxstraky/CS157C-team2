@@ -25,7 +25,6 @@ export class Game extends Scene {
 
     // Define main GUI elements
     camera: Phaser.Cameras.Scene2D.Camera;
-    background: Phaser.GameObjects.Image;
     gameText: Phaser.GameObjects.Text;
     decorativeBlocks: Phaser.GameObjects.Rectangle[] = []; // For Tetris-style blocks
 
@@ -180,10 +179,6 @@ export class Game extends Scene {
         // Create background
         this.camera = this.cameras.main;
         this.camera.setBackgroundColor(0x00cc66);
-        
-        this.background = this.add.image(512, 384, 'background');
-        this.background.setAlpha(0.5);
-        this.background.setDepth(0);
         
         // Add decorative Tetris-style blocks
         this.addDecorativeBlocks();
