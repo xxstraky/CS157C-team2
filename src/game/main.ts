@@ -1,8 +1,5 @@
-import { Boot } from './scenes/Boot';
-import { GameOver } from './scenes/GameOver';
 import { Game as MainGame } from './scenes/Game';
 import { Queue } from './scenes/Queue';
-import { Preloader } from './scenes/Preloader';
 import { AUTO, Game } from 'phaser';
 
 
@@ -16,11 +13,8 @@ const config: Phaser.Types.Core.GameConfig = {
     // this background color is replaced by each scene's own background color
     backgroundColor: '#028af8',
     scene: [
-        Boot,
-        Preloader,
         Queue,
         MainGame,
-        GameOver
     ],
     // Enable keyboard input for the typing game
     input: {
