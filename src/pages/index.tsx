@@ -1,6 +1,5 @@
 import Head from "next/head";
 import { Inter } from "next/font/google";
-import styles from "@/styles/Home.module.css";
 import Link from 'next/link';
 import { useEffect } from 'react';
 
@@ -67,7 +66,7 @@ export default function Home() {
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
                 <link rel="icon" href="/favicon.png" />
             </Head>
-            <main className={`${styles.main} ${inter.className} home-container`}>
+            <main className={`${inter.className} home-container`}>
                 <div className="tetris-container">
                     <div className="game-title">
                         <h1 style={{ color: 'var(--tetris-i)', fontSize: '2.5rem', marginBottom: '30px' }}>WELCOME TO</h1>
