@@ -12,7 +12,7 @@ Open your terminal and run the following command to clone the repository:
     git clone https://github.com/xxstraky/CS157C-team2.git
 
 
-Then navigate into the project folder:
+Then navigate into the root folder of the project:
 
     cd CS157C-team2
 
