@@ -1,17 +1,20 @@
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import Link from 'next/link';
-// Axios to make HTTP requests simple
 import axios from 'axios';
 
+// Login page
 function Login() {
+    // Router to handle page navigation
     const router = useRouter();
 
+    // useStates to handle user credentials and output messages
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [message, setMessage] = useState('');
     const [isSuccess, setIsSuccess] = useState(false);
 
+    // Handles user logs in
     const handleLogin = async () => {
         try {
             const response = await axios.post('http://localhost:3000/login', {
@@ -25,6 +28,7 @@ function Login() {
             // If successful, send user to profile page
             if (response.data.success) {
                 setIsSuccess(true);
+                // Wait 1 second before redirecting user
                 setTimeout(() => {
                     router.push('/profile');
                 }, 1000);

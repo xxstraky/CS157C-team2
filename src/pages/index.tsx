@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 
 const inter = Inter({ subsets: ["latin"] });
 
+// Home page
 export default function Home() {
     // Function to create falling Tetris pieces animation
     useEffect(() => {

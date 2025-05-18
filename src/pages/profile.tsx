@@ -1,11 +1,13 @@
 import { useRouter } from 'next/router';
 import { useEffect, useState} from 'react';
 import axios from 'axios';
-import { kill } from 'process';
 
+// Profile page
 function Profile() {
+    // Router to handle page navigation
     const router = useRouter();
 
+    // useStates for user profile information and output messages
     const [message, setMessage] = useState('');
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [isSuccess, setIsSuccess] = useState(true);
@@ -27,6 +29,7 @@ function Profile() {
                 const response = await axios.get('http://localhost:3000/profile', { withCredentials: true});
                 setMessage(response.data.message);
                 if (response.data.success) {
+                    // User is logged in
                     setIsLoggedIn(true);
                     // Now fetch user profile details
                     fetchUserProfile();
@@ -57,6 +60,7 @@ function Profile() {
         try {
             const response = await axios.get('http://localhost:3000/userprofile', { withCredentials: true });
             if (response.data.success) {
+                // Successfully fetched user information, so set fields on display
                 setUsername(response.data.username);
                 setDisplayName(response.data.displayName);
                 setEmail(response.data.email);
@@ -72,6 +76,7 @@ function Profile() {
             const response = await axios.get('http://localhost:3000/userstats', { withCredentials: true });
             console.log(response.data);
             if (response.data.success) {
+                // Successfully fetched user information, so set staistics on display
                 setWins(response.data.wins);
                 setGamesPlayed(response.data.totalGamesPlayed);
                 setAvgWPM(response.data.averageWpm);

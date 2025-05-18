@@ -1,19 +1,22 @@
 import { forwardRef, useEffect, useImperativeHandle, useLayoutEffect, useRef } from 'react';
 import StartGame from './game/main';
 import { EventBus } from './game/EventBus';
-import { Game } from './game/scenes/Game'; // Make sure to import your Game scene class
+import { Game } from './game/scenes/Game';
 import { Queue } from './game/scenes/Queue';
 
+// Allow Game page to get info of Game
 export interface IRefPhaserGame {
     game: Phaser.Game | null;
     scene: Phaser.Scene | null;
     getCurrentGameInfo: () => { gameId: string | null, userId: string | null };
 }
 
+// For checking the current active Phaser scene
 interface IProps {
     currentActiveScene?: (scene_instance: Phaser.Scene) => void
 }
 
+// PhaserGame wraps the entire Phaser client with React
 export const PhaserGame = forwardRef<IRefPhaserGame, IProps>(function PhaserGame({ currentActiveScene }, ref) {
     const gameRef = useRef<Phaser.Game | null>(null);
     const sceneRef = useRef<Phaser.Scene | null>(null);
@@ -26,6 +29,7 @@ export const PhaserGame = forwardRef<IRefPhaserGame, IProps>(function PhaserGame
                 try {
                     const gameScene = sceneRef.current as Game;
                     return {
+                        // Return gameId and userId
                         gameId: gameScene.gameId,
                         userId: gameScene.userId
                     };
@@ -39,6 +43,7 @@ export const PhaserGame = forwardRef<IRefPhaserGame, IProps>(function PhaserGame
                 try {
                     const queueScene = sceneRef.current as Queue;
                     return {
+                        // Return gameId and userId
                         gameId: queueScene.queueId, // Use queueId if available
                         userId: queueScene.userId
                     };
@@ -57,6 +62,7 @@ export const PhaserGame = forwardRef<IRefPhaserGame, IProps>(function PhaserGame
         getCurrentGameInfo
     }));
 
+    // Initialize Phaser game
     useLayoutEffect(() => {
         if (gameRef.current === null) {
             gameRef.current = StartGame("game-container");
@@ -70,6 +76,7 @@ export const PhaserGame = forwardRef<IRefPhaserGame, IProps>(function PhaserGame
         }
     }, [ref]);
 
+    // Listen for when scene is ready
     useEffect(() => {
         const handleSceneReady = (scene_instance: Phaser.Scene) => {
             // Update scene reference
@@ -80,6 +87,7 @@ export const PhaserGame = forwardRef<IRefPhaserGame, IProps>(function PhaserGame
             }
         };
 
+        // Use EventBus to listen
         EventBus.on('current-scene-ready', handleSceneReady);
         
         return () => {

@@ -10,6 +10,7 @@ const session = require('express-session');
 // Initialize express
 const app = express();
 
+// Allow frontend on port 8080 to interact with backend on port 3000
 app.use(cors({
     origin: 'http://localhost:8080',
     methods: 'GET, POST',
@@ -30,23 +31,30 @@ app.use(session({
 // Redis client
 const client = redis.createClient({
     socket: {
-        // local host for now, maybe VM IP later
+        // IP of VM on Google Cloud Platform
         host: '34.173.23.63',
         port: 6379
     },
+    // Redis database requires password for security
     password: '5Xr9!fH2s@Dp7t$kQb8yP0zLwE#Vg3zR'
 });
 
+// Other Redis client for commands not supported by the other Redis library
 const r = new ioredis({
+    // IP of VM on Google Cloud Platform
     host: '34.173.23.63',
     port: 6379,
+    // Redis database requires password for security
     password: '5Xr9!fH2s@Dp7t$kQb8yP0zLwE#Vg3zR'
 });
 
+// Set of words to be generated for each Type99 game
 const wordBank = [
     'apple', 'banana', 'cherry', 'date', 'elderberry', 'fig', 'grape', 'honeydew', 'kiwi', 'lemon', 'mango', 'nectarine', 'orange', 'papaya', 'quince', 'raspberry', 'strawberry', 'tangerine', 'watermelon', 'apricot', 'blueberry', 'cantaloupe', 'dragonfruit', 'eggplant', 'fennel', 'guava', 'hibiscus', 'iceberg', 'jalapeno', 'kumquat', 'lime', 'mulberry', 'nectarine', 'olive', 'persimmon', 'pineapple', 'plum', 'pomegranate', 'rhubarb', 'starfruit', 'tomato', 'unique', 'yam', 'zucchini', 'acorn', 'bagel', 'cat', 'dog', 'elephant', 'frog', 'giraffe', 'horse', 'iguana', 'jellyfish', 'kangaroo', 'lion', 'monkey', 'narwhal', 'octopus', 'parrot', 'quail', 'rabbit', 'snake', 'tiger', 'umbrella', 'vulture', 'walrus', 'xylophone', 'yak', 'zebra', 'antelope', 'bear', 'cow', 'dolphin', 'eagle', 'fox', 'gorilla', 'hippopotamus', 'iguana', 'jaguar', 'koala', 'lemur', 'moose', 'newt', 'opossum', 'penguin', 'quokka', 'raccoon', 'sloth', 'toucan', 'unicorn', 'viper', 'whale', 'xerus', 'yellowjacket', 'zebra', 'albatross', 'baboon', 'cactus', 'dingo', 'elk', 'fern', 'gecko', 'hawk', 'owl', 'penguin', 'quail', 'rooster', 'sparrow', 'toucan', 'vulture', 'warbler', 'xenops', 'yodeler', 'zebra', 'artichoke', 'blueberry', 'cabbage', 'daffodil', 'eucalyptus', 'fern', 'ginseng', 'hibiscus', 'ivy', 'juniper', 'kelp', 'lavender', 'marigold', 'nasturtium', 'oregano', 'petunia', 'quinoa', 'rosemary', 'sage', 'thyme', 'violet', 'wisteria', 'xenia', 'yucca', 'zinnia', 'acorn', 'ball', 'clock', 'door', 'elephant', 'flag', 'grape', 'hat', 'ink', 'jug', 'kite', 'lemon', 'mask', 'nut', 'octagon', 'park', 'queen', 'radio', 'ship', 'train', 'umbrella', 'vest', 'wagon', 'xylophone', 'yellow', 'zebra', 'axis', 'break', 'crane', 'drum', 'end', 'flare', 'gap', 'hunt', 'icon', 'joke', 'key', 'love', 'mark', 'neck', 'oval', 'park', 'quiz', 'rest', 'snap', 'tale', 'unit', 'void', 'wall', 'yoke', 'zest', 'arm', 'bend', 'cash', 'die', 'ear', 'fit', 'gun', 'ham', 'ink', 'joy', 'kit', 'lad', 'man', 'net', 'oil', 'pen', 'rat', 'sun', 'toy', 'urn', 'vat', 'win', 'yak', 'zip', 'aim', 'ball', 'coat', 'dust', 'egg', 'fan', 'grid', 'horn', 'ink', 'jam', 'log', 'mix', 'nap', 'odd', 'pit', 'rug', 'saw', 'tin', 'undo', 'vet', 'wig', 'you', 'zip', 'amber', 'bench', 'coat', 'deck', 'epic', 'fame', 'gear', 'hand', 'ice', 'jam', 'king', 'log', 'map', 'net', 'oak', 'pet', 'quiz', 'rug', 'sap', 'top', 'urn', 'van', 'web', 'yam', 'zoo', 'angle', 'bar', 'cast', 'deal', 'eel', 'flat', 'gash', 'heat', 'icon', 'jolt', 'king', 'lace', 'mile', 'net', 'oak', 'pit', 'queen', 'rag', 'sat', 'tin', 'urn', 'vet', 'win', 'yet', 'zone', 'alpha', 'bravo', 'charlie', 'delta', 'echo', 'foxtrot', 'golf', 'hotel', 'india', 'juliet', 'kilo', 'lima', 'mike', 'november', 'oscar', 'papa', 'quebec', 'romeo', 'sierra', 'tango', 'uniform', 'victor', 'whiskey', 'xray', 'yankee', 'zulu',
   ];
 
+
+// When backend starts, initialize word bank
 async function initializeWordBank() {
 const exists = await client.exists('wordBank');
 if (!exists) {
@@ -60,8 +68,10 @@ if (!exists) {
 // Helper function to update overall average WPM
 async function updateOverallAverageWpm(username) {
     try {
+        // Retrieve average WPM history list from Redis database
         const avgWpmHistory = await client.lRange(`user:${username}:avg_wpm_history`, 0, -1);
         
+        // If it has any elements, calculate the overall average
         if (avgWpmHistory.length > 0) {
             let totalWpm = 0;
             for (const wpm of avgWpmHistory) {
@@ -69,6 +79,7 @@ async function updateOverallAverageWpm(username) {
             }
             
             const overallAvgWpm = Math.round(totalWpm / avgWpmHistory.length);
+            // Update user's overall_avg_wpm in Redis database
             await client.set(`user:${username}:overall_avg_wpm`, overallAvgWpm.toString());
             console.log(`Updated overall average WPM for ${username} to ${overallAvgWpm}`);
         }
@@ -91,7 +102,7 @@ client.connect()
         console.error('Redis connection error:', err);
 });
 
-
+// Make sure user doesn't have access to certain pages when they are not logged in
 function requireLogin(req, res, next) {
     if (req.session.user) {
         next();
@@ -224,11 +235,13 @@ app.post('/updatedisplayname', requireLogin, async (req, res) => {
     const username = req.session.user;
     const { displayName } = req.body;
     
+    // Handle display name field being empty
     if (!displayName) {
         return res.json({ success: false, message: "Display name cannot be empty" });
     }
     
     try {
+        // Update user's display name in Redis database
         await client.set(`user:${username}:displayName`, displayName);
         console.log(`Updated display name for ${username} to ${displayName}`);
         return res.json({ success: true, message: "Display name updated successfully" });
@@ -243,6 +256,7 @@ app.post('/updateemail', requireLogin, async (req, res) => {
     const username = req.session.user;
     const { email } = req.body;
     
+    // Handle email field being empty
     if (!email) {
         return res.json({ success: false, message: "Email cannot be empty" });
     }
@@ -260,7 +274,7 @@ app.post('/updateemail', requireLogin, async (req, res) => {
             await client.del(`email:${oldEmail}`);
         }
         
-        // Set new email
+        // Set new email in Redis database
         await client.set(`user:${username}:email`, email);
         await client.set(`email:${email}`, username);
         
@@ -277,18 +291,19 @@ app.post('/updatepassword', requireLogin, async (req, res) => {
     const username = req.session.user;
     const { currentPassword, newPassword } = req.body;
     
+    // If fields for current password or new password are empty
     if (!currentPassword || !newPassword) {
         return res.json({ success: false, message: "Current and new password are required" });
     }
     
     try {
-        // Verify current password
+        // Verify current password in Redis database
         const storedPassword = await client.get(`user:${username}`);
         if (storedPassword !== currentPassword) {
             return res.json({ success: false, message: "Current password is incorrect" });
         }
         
-        // Update password
+        // Update password in Redis database
         await client.set(`user:${username}`, newPassword);
         console.log(`Updated password for ${username}`);
         return res.json({ success: true, message: "Password updated successfully" });
@@ -315,7 +330,7 @@ app.post('/updateprofile', requireLogin, async (req, res) => {
             
             // Check if new email is different from current one
             if (oldEmail !== email) {
-                // Check if new email is already registered to another user
+                // Check if new email is already registered to another user in Redis database
                 const existingEmail = await client.get(`email:${email}`);
                 if (existingEmail && existingEmail !== username) {
                     return res.json({ success: false, message: "Email already registered to another account" });
@@ -326,7 +341,7 @@ app.post('/updateprofile', requireLogin, async (req, res) => {
                     await client.del(`email:${oldEmail}`);
                 }
                 
-                // Set new email
+                // Set new email in Redis database
                 await client.set(`user:${username}:email`, email);
                 await client.set(`email:${email}`, username);
             }
@@ -334,7 +349,7 @@ app.post('/updateprofile', requireLogin, async (req, res) => {
         
         // Update password if both current and new are provided
         if (currentPassword && newPassword) {
-            // Verify current password
+            // Verify current password with Redis database
             const storedPassword = await client.get(`user:${username}`);
             if (storedPassword !== currentPassword) {
                 return res.json({ success: false, message: "Current password is incorrect" });
@@ -361,6 +376,7 @@ app.post('/logout', (req, res) => {
             console.log('Log out failed');
             return res.json({ status: false, message: "Log out failed"});
         }
+        // Clear cookies
         res.clearCookie('connect.sid');
         console.log('Log out successful');
         return res.json({ success: true, message: "Log out successful"});
@@ -385,7 +401,7 @@ app.post('/enterqueue', async (req, res) => {
         queueId = await client.get('queue:counter');
     }
 
-    // Key for queue
+    // Key for queue in Redis database
     const queue = `queue:${queueId}`
 
     // Score 0 means user is not ready
@@ -528,9 +544,6 @@ app.post('/startgame', async (req, res) => {
     // Set zoneIndex to -2 (2 lines before line 0)
     await client.set(`game:${gameId}:zoneIndex`, -2);
 
-    // Don't think this is being used
-    // await client.del(`queue:${gameId}:locked`);
-
     // Set game:<gameId>:ready to 1 after creating game, for other users to join game
     await client.set(`game:${gameId}:ready`, 1);
 
@@ -556,7 +569,7 @@ app.post('/getWordLine', async (req, res) => {
       const startIndex = lineIndex * 10;
       const endIndex = startIndex + 9;
 
-      // Use a Lua script to atomically check words and add if needed
+      // Use a Lua script to quickly and atomically check words and add if needed
       const luaScript = `
         local gameKey = KEYS[1]
         local startIndex = tonumber(ARGV[1])
@@ -592,7 +605,7 @@ app.post('/getWordLine', async (req, res) => {
         return words
       `
       
-      // Execute the Lua script
+      // Execute the Lua script with Redis
       const words = await r.eval(
             luaScript,
             1,                         // Number of keys
@@ -623,6 +636,7 @@ app.post('/checkgameready', async (req, res) => {
     }
 })
 
+// Update game information endpoint
 app.post('/updategame', async (req, res) => {
     const { gameId, hp, currentLineIndex, user } = req.body;
 
@@ -713,6 +727,7 @@ app.post('/fetchgame', async (req, res) => {
         playerWpm[player] = wpm;
     }
     
+    // Get leader
     const leader = await r.zrevrange(`game:${gameId}:wordLines`, 0, 0);
     const isLeader = leader[0] === user;
 
@@ -967,7 +982,7 @@ app.post('/updateleader', async (req, res) => {
         .set(`game:${gameId}:zoneIndex`, currentLineIndex - 2)
         .exec();
 
-        // Generate 10 new random words atomically using Lua script
+        // Generate 10 new random words quickly and atomically using Lua script
         const luaScript = `
           local gameKey = KEYS[1]
         
@@ -981,6 +996,8 @@ app.post('/updateleader', async (req, res) => {
         
           return #newWords
         `
+
+        // Execute the Lua script with Redis
         const wordCount = await r.eval(
             luaScript,
             1,                         // Number of keys
@@ -1065,6 +1082,7 @@ app.post('/leavegame', async (req, res) => {
     const { gameId, user } = req.body;
     console.log("Leaving game - gameId:", gameId, "user:", user);
 
+    // Save user's metrics before doing any removal from Redis database
     try {
         //Get all players before removing the leaving player
         const allPlayers = await client.lRange(`game:${gameId}`, 0, -1);
@@ -1206,6 +1224,7 @@ app.post('/leavegame', async (req, res) => {
 app.post('/leavequeue', async (req, res) => {
     const { queueId, user } = req.body;
     
+    // Handle missing queue ID or username
     if (!queueId || !user) {
         return res.json({ success: false, message: "Missing queueId or user" });
     }
@@ -1295,7 +1314,7 @@ app.get('/userstats', requireLogin, async (req, res) => {
 });
 
 
-// Start server
+// Start server on port 3000
 const PORT = 3000;
 app.listen(PORT, () => {
     console.log('Running on PORT 3000');

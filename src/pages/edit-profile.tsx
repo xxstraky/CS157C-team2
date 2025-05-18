@@ -3,9 +3,12 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import Link from 'next/link';
 
+// Edit Profile page
 function EditProfile() {
+    // Router to handle page navigation
     const router = useRouter();
 
+    // useStates for user profile information and output messages
     const [username, setUsername] = useState('');
     const [displayName, setDisplayName] = useState('');
     const [email, setEmail] = useState('');
@@ -35,6 +38,7 @@ function EditProfile() {
                 const userProfileResponse = await axios.get('http://localhost:3000/userprofile', { withCredentials: true });
                 
                 if (userProfileResponse.data.success) {
+                    // Success, so set profile information in display
                     setUsername(userProfileResponse.data.username);
                     setDisplayName(userProfileResponse.data.displayName);
                     setEmail(userProfileResponse.data.email);
@@ -63,6 +67,7 @@ function EditProfile() {
             return;
         }
 
+        // Email doesn't exist
         if (!email) {
             setMessage('Email cannot be empty');
             setIsSuccess(false);
@@ -71,12 +76,14 @@ function EditProfile() {
 
         // If new password is provided, validate it
         if (newPassword) {
+            // User does not provide current password
             if (!currentPassword) {
                 setMessage('Current password is required to set a new password');
                 setIsSuccess(false);
                 return;
             }
             
+            // Both new passwords do not match
             if (newPassword !== confirmPassword) {
                 setMessage('New passwords do not match');
                 setIsSuccess(false);
@@ -84,6 +91,7 @@ function EditProfile() {
             }
         }
 
+        // Update profile information in Redis database using new values
         try {
             const response = await axios.post('http://localhost:3000/updateprofile', {
                 displayName,
@@ -110,6 +118,7 @@ function EditProfile() {
 
     // Handle discard button click
     const handleDiscardChanges = () => {
+        // Redirect back to profile page
         router.push('/profile');
     };
 

@@ -3,9 +3,12 @@ import { useState } from 'react';
 import axios from 'axios';
 import Link from 'next/link';
 
+// Register page
 function Register() {
+    // Router to handle page navigation
     const router = useRouter();
 
+    // useStates for user credentials and output messages
     const [username, setUsername] = useState('');
     const [displayName, setDisplayName] = useState('');
     const [email, setEmail] = useState('');
@@ -13,6 +16,7 @@ function Register() {
     const [message, setMessage] = useState('');
     const [isSuccess, setIsSuccess] = useState(false);
 
+    // Handle user clicks Register
     const handleRegister = async () => {
         try {
             const response = await axios.post('http://localhost:3000/register', {
@@ -26,7 +30,9 @@ function Register() {
 
             setMessage(response.data.message);
             if (response.data.success) {
+                // Display success message
                 setIsSuccess(true);
+                // Redirect user to login page after 1 second
                 setTimeout(() => {
                     router.push('/login');
                 }, 1000);

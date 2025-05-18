@@ -3,17 +3,21 @@ import { EventBus } from '../EventBus';
 import axios from 'axios';
 
 export class Queue extends Scene {
+    // Keep track of user ID, queue ID, and whether game started
+    userId: string | null = null;
     queueId: string | null = null;
     gameStarted: boolean = false;
 
+    // GUI elements
     background: GameObjects.Rectangle;
     title: GameObjects.Text;
     queueText: GameObjects.Text;
     readyText: GameObjects.Text;
     playersReadyText: GameObjects.Text;
     gameStartText: GameObjects.Text;
-    userId: string | null = null;
+    
 
+    // Fetch user ID from the backend
     async getUserInfo() {
         try {
             const response = await axios.get("http://localhost:3000/user", {
@@ -21,6 +25,7 @@ export class Queue extends Scene {
             });
             
             if (response.data.success) {
+                // Set this.userId
                 this.userId = response.data.user;
                 console.log(`User ID set: ${this.userId}`);
                 return true;
@@ -317,6 +322,7 @@ export class Queue extends Scene {
     // Game starts
     async startGame() {
         try {
+            // Switch to Game scene
             this.scene.start("Game");
         }
         catch (error) {

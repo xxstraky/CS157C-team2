@@ -10,11 +10,11 @@ interface WordData {
 }
 
 export class Game extends Scene {
-    // Make properties private
+    // Make properties for gameId and userId private
     private _gameId: string | null = null;
     private _userId: string | null = null;
     
-    // Provide getters
+    // Provide getters for gameId and userId
     public get gameId(): string | null {
         return this._gameId;
     }
@@ -23,6 +23,7 @@ export class Game extends Scene {
         return this._userId;
     }
 
+    // Define main GUI elements
     camera: Phaser.Cameras.Scene2D.Camera;
     background: Phaser.GameObjects.Image;
     gameText: Phaser.GameObjects.Text;
@@ -31,7 +32,7 @@ export class Game extends Scene {
     // Keep track of this game client's player
     userHp: number = 5;
 
-    // Keep track of this game's ID
+    // Keep track of this game's ID and who is the last ready player
     static currentGameId: string | null = null;
     static lastReadyUser: string | null = null;
 
@@ -39,6 +40,7 @@ export class Game extends Scene {
     gameStarted: boolean = false;
     // Keep track of game end (ends when only 1 player alive)
     gameOver: boolean = false;
+    // Keep track of if this user died (is at 0 HP)
     died: boolean = false;
 
     // Contains text to be displayed on screen
@@ -72,7 +74,6 @@ export class Game extends Scene {
     
     // Zone properties
     inZone: boolean = false;
-    //playerHealth: number = 100; // Initial health value
     kills: number = 0;
     isLeader: boolean = false;
     
@@ -94,6 +95,7 @@ export class Game extends Scene {
             });
             
             if (response.data.success) {
+                // Set this._userId variable
                 this._userId = response.data.user;
                 console.log(`User ID set: ${this._userId}`);
                 return true;
@@ -175,8 +177,9 @@ export class Game extends Scene {
     
     // Create the UI elements for the game
     createGameElements() {
+        // Create background
         this.camera = this.cameras.main;
-        this.camera.setBackgroundColor(0x00cc66); // Slightly deeper green
+        this.camera.setBackgroundColor(0x00cc66);
         
         this.background = this.add.image(512, 384, 'background');
         this.background.setAlpha(0.5);
@@ -609,9 +612,6 @@ export class Game extends Scene {
         // Wait for game while game is not started
         while (!this.gameStarted) {
             await this.waitGameStart();
-
-            // Check for game ready every 1 second
-            // await new Promise(resolve => setTimeout(resolve, 1000));
         }
 
         // Game has started, so fetch it
@@ -667,6 +667,7 @@ export class Game extends Scene {
     // Fetches words for player's current line
     async fetchWordLine(lineIndex: number): Promise<string[]> {
         try {
+            // Pass lineIndex to backend for the correct 10 words to be returned from Redis database
           const response = await axios.post("http://localhost:3000/getWordLine", {
             gameId: this._gameId,
             lineIndex: lineIndex
@@ -675,6 +676,7 @@ export class Game extends Scene {
           });
           
           if (response.data.success) {
+            // Return the 10 words
             return response.data.words;
           } else {
             console.error("Failed to fetch word line:", response.data.message);
@@ -748,6 +750,7 @@ export class Game extends Scene {
             this.inZone = response.data.inZone;
             this.died = response.data.died;
 
+            // Update leaderboard with new values
             this.updateLeaderboard();
 
             // If we need to fetch a new line of words
@@ -755,17 +758,17 @@ export class Game extends Scene {
                 this.wordLine = await this.fetchWordLine(this.currentLineIndex);
             }
             
-            // Update display
-
             // Update or create word objects
             if (this.scene.isActive()) {
                 this.renderWordObjects();
             }
             
+            // Update HP display
             if (this.healthText && this.healthText.scene) {
                 this.healthText.setText(`Health: ${this.userHp}`);
             }
 
+            // Update Zone display
             if (this.inZone) {
                 this.zoneText.setText('Zone: DANGER!');
                 this.zoneText.setColor('#ff0000');
@@ -774,6 +777,7 @@ export class Game extends Scene {
                 this.zoneText.setColor('#00ff00');
             }
 
+            // Handle user died (their HP is 0)
             if (this.died && this.scene.isActive()) {
                 this.playerDied();
             }
@@ -785,7 +789,9 @@ export class Game extends Scene {
         }
     }
 
+    // Handle each key press of the user during the game
     async handleKeyPress(key: string) {
+        // Initialize lineStartTime at the start of a word line to calculate WPM
         if (this.currentWordIndex === 0 && this.wordsInput.length === 0 && key.length === 1 && /^[a-zA-Z]$/.test(key)) {
             // This is the first keystroke of a new line
             if (this.lineStartTime === 0) {
@@ -793,6 +799,7 @@ export class Game extends Scene {
             }
         }
 
+        // Check if user is not done with the current word line
         if (this.currentWordIndex < this.wordLine.length) {
             if (key === 'Backspace') {
                 // Remove most recent key if user presses backspace
@@ -907,6 +914,7 @@ export class Game extends Scene {
             if (!response.data.success) {
                 console.error("Failed to update WPM:", response.data.message);
             } else {
+                // Set averageWPM value
                 this.averageWPM = response.data.averageWPM;
             }
         } catch (error) {
@@ -925,6 +933,7 @@ export class Game extends Scene {
             }, {
                 withCredentials: true
             });
+            // Also update userHp value for this client to display up-to-date HP
             this.userHp = response.data.playerHp;
         }
         catch (error) {
@@ -944,7 +953,7 @@ export class Game extends Scene {
             });
             
             if (response.data.success) {
-                // Only the leader calls this function
+                // Update Leader status on display
                 this.leaderText.setText('LEADER');
                 this.leaderText.setColor('#ffff00');
                 
@@ -957,6 +966,7 @@ export class Game extends Scene {
                     repeat: 1
                 });
 
+                // Only the leader calls this function
                 this.getLeaderKills();
             }
         } catch (error) {
@@ -975,6 +985,7 @@ export class Game extends Scene {
             });
             
             if (response.data.success) {
+                // Update kill count and kill display
                 this.kills = response.data.kills;
                 this.killsText.setText(`Kills: ${this.kills}`);
                 
@@ -1032,6 +1043,7 @@ export class Game extends Scene {
         });
     }
 
+    // Handles player winning
     playerWin() {
         const victoryText = this.add.text(512, 384, 'VICTORY ROYALE!', {
             fontFamily: '"Press Start 2P"', 
@@ -1054,6 +1066,7 @@ export class Game extends Scene {
         });
     }
 
+    // Handles player leaving the game
     public leaveGame() {
         console.log("Player leaving game - terminating game loop");
         
@@ -1098,7 +1111,4 @@ export class Game extends Scene {
     }
 
 
-    changeScene() {
-        // this.scene.start('GameOver');
-    }
 }

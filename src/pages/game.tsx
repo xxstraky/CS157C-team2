@@ -5,7 +5,9 @@ import { Game } from '../game/scenes/Game';
 import { useRouter } from 'next/router';
 import axios from 'axios';
 
+// Game page
 function GameController() {
+    // Router to handle page navigation
     const router = useRouter();
     //  References to the PhaserGame component (game and scene are exposed)
     const phaserRef = useRef<IRefPhaserGame | null>(null);
@@ -101,7 +103,7 @@ function GameController() {
         }
     };
 
-    // ENTER QUEUE
+    // Enter queue
     const enterQueue = () => {
         if (phaserRef.current && phaserRef.current.scene) {
             try {
@@ -110,7 +112,9 @@ function GameController() {
                     const scene = phaserRef.current.scene as Queue;
                     
                     if (scene && scene.enterQueue) {
+                        // Call enterQueue() function of the Phaser scene
                         scene.enterQueue();
+                        // Update useStates
                         setCantReady(false);
                         setIsQueued(true);
                         setStatusMessage('IN QUEUE - READY UP!');
@@ -129,7 +133,7 @@ function GameController() {
         }
     }
 
-    // READY UP
+    // Ready up
     const readyUp = () => {
         if (phaserRef.current)
         {
@@ -137,6 +141,7 @@ function GameController() {
 
             if (scene)
             {
+                // Call readyUp() function of the Phaser scene
                 scene.readyUp();
                 setCantReady(true);
                 setStatusMessage('READY! WAITING FOR GAME START');
@@ -154,6 +159,7 @@ function GameController() {
         setSceneReady(true);
     }
 
+    // Button styling
     useEffect(() => {
         const colors = ['i', 'j', 'l', 'o', 's', 't', 'z'];
         let colorIndex = 0;
@@ -172,6 +178,7 @@ function GameController() {
         return () => clearInterval(interval);
     }, []);
 
+    // Update status message when user enters the Game
     useEffect(() => {
         if (inGame) {
             setStatusMessage('GLHF!');
@@ -186,6 +193,7 @@ function GameController() {
 
             const gameInfo = phaserRef.current.getCurrentGameInfo();
 
+            // User is in Queue, so leave queue
             if (!inGame && gameInfo.gameId && gameInfo.userId) {
                 const info = JSON.stringify({
                     queueId: gameInfo.gameId,
@@ -198,6 +206,7 @@ function GameController() {
                     new Blob([info], { type: 'application/json'})
                 );
             }
+            // User is in Game, so leave game
             else if (inGame && gameInfo.gameId && gameInfo.userId) {
                 const info = JSON.stringify({
                     gameId: gameInfo.gameId,

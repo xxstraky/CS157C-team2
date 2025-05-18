@@ -3,8 +3,7 @@ import { Queue } from './scenes/Queue';
 import { AUTO, Game } from 'phaser';
 
 
-//  Find out more information about the Game Config at:
-//  https://newdocs.phaser.io/docs/3.70.0/Phaser.Types.Core.GameConfig
+//  Configuration settings for the Phaser screen
 const config: Phaser.Types.Core.GameConfig = {
     type: AUTO,
     width: 1024,
@@ -12,6 +11,7 @@ const config: Phaser.Types.Core.GameConfig = {
     parent: 'game-container',
     // this background color is replaced by each scene's own background color
     backgroundColor: '#028af8',
+    // Game consists of 2 scenes: Queue scene and MainGame scene
     scene: [
         Queue,
         MainGame,
