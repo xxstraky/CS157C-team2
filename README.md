@@ -12,7 +12,7 @@ Open your terminal and run the following command to clone the repository:
     git clone https://github.com/xxstraky/CS157C-team2.git
 
 
-Then navigate into the project folder:
+Then navigate into the root folder of the project:
 
     cd CS157C-team2
 
@@ -24,7 +24,7 @@ If you don’t have NPM (Node Package Manager), install it through this website:
 
 ### 3. Install Dependencies
 
-Open your terminal and navigate to the root folder ( CS157C-team2\ ) of the project. Then, run:
+In the root folder ( CS157C-team2\ ) of the project, run:
 
     npm i
 
